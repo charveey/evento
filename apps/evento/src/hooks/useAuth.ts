@@ -56,7 +56,7 @@ export function useAuth() {
     setCurrentLoggedEmail(String(user.primaryEmailAddress));
 
     //if clerk user is loaded and users was queried successfully from supabase
-    if (isLoaded && !isUsersLoading && authorizedUsers.length > 0) {
+    if (isLoaded && !isUsersLoading && authorizedUsers && authorizedUsers.length > 0) {
       // Skip authorization check for sign-in route
       if (pathname === "/sign-in") {
         setIsAuthorized(true);

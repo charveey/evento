@@ -42,15 +42,19 @@ export default function EventScannerStats() {
         console.log("Date changed:", date);
     }, [date]);
 
-    const filteredData = data.filter((stat) => {
-        if (!date) return true;
-        return stat.date === format(date, "yyyy-MM-dd");
-    });
+    const filteredData = Array.isArray(data)
+    ? data.filter((stat) => {
+          if (!date) return true;
+          return stat.date === format(date, "yyyy-MM-dd");
+      })
+    : [];
 
-    const filteredEventData = eventsData.find((stat) => {
-        if (!date) return true;
-        return stat.date === format(date, "yyyy-MM-dd");
-    });
+    const filteredEventData = Array.isArray(eventsData)
+    ? eventsData.find((stat) => {
+          if (!date) return true;
+          return stat.date === format(date, "yyyy-MM-dd");
+      })
+    : undefined;
 
 
     useEffect(() => {

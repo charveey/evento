@@ -23,7 +23,7 @@ export type Attendance = {
 };
 
 export type AttendanceRecord = Attendance & {
-  student: Student;
+  student: Student | null;
   uniqueId?: number;
 };
 
@@ -229,7 +229,18 @@ export const getAllAttendanceRecords = async (): Promise<
 > => {
   const { data, error } = await supabase
     .from("attendance")
-    .select("*, student:students!attendance_studentId_fkey(school_id, name)");
+    .select(`
+  *,
+  student:students!attendance_studentId_fkey(
+    id,
+    school_id,
+    first_name,
+    last_name,
+    dept_id,
+    is_active,
+    created_at
+  )
+`);
 
   if (error)
     throw new Error("Error fetching attendance records: " + error.message);

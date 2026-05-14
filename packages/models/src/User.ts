@@ -16,10 +16,11 @@ export async function getAllUsers(): Promise<User[]> {
 
   if (error) {
     console.error("Error fetching all users:", error);
+    return [];
   }
 
   console.log("All users", data);
-  return data as User[];
+  return (data as User[]) ?? [];
 }
 
 export type role = "ADMIN" | "OFFICER" | "REPRESENTATIVE";

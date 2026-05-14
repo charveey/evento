@@ -12,11 +12,9 @@ export type Student = {
   created_at: string | null;
 };
 
-export function getStudentFullName(student: Student): string {
-  return `${student.first_name} ${student.last_name}`;
-}
-
-export async function getStudentBySchoolId(schoolId: string) {
+export async function getStudentBySchoolId(
+  schoolId: string
+): Promise<Student | null> {
   const { data, error } = await supabase
     .from("students")
     .select("*")
@@ -28,8 +26,15 @@ export async function getStudentBySchoolId(schoolId: string) {
     return null;
   }
 
-  console.log("Fetched student:", data);
-  return data;
+  return data as Student | null;
+}
+
+export function getStudentFullName(
+  student: Student | null | undefined
+): string {
+  if (!student) return "";
+
+  return `${student.first_name} ${student.last_name}`;
 }
 
 //! V1 DEPRECATED this function does not directly query  the database, instead it uses the students data from the cache which fetches all students at once
