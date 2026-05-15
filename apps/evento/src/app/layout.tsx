@@ -56,7 +56,7 @@ export default function RootLayout({
 							enableSystem
 							disableTransitionOnChange
 						>
-							<AuthGuard>
+							<>
 
 								{/* <ReactQueryDevtools /> */}
 
@@ -97,7 +97,7 @@ export default function RootLayout({
 
 								<Analytics />
 
-							</AuthGuard>
+							</>
 						</ThemeProvider>
 
 					</body>

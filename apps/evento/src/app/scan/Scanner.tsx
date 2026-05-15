@@ -1,5 +1,6 @@
 "use client";
 
+import { checkInAttendee } from "@/lib/sheets";
 import { StudentMissingModal } from '@/components/modals/StudentMissingModal';
 // import { createQueuedAttendanceRecord } from '@repo/models/Attendance';
 // import type { QueuedAttendance } from '@repo/models/Attendance';
@@ -172,7 +173,8 @@ export default function Scanner() {
         | "INVALID_SCHOOL_ID"
         | "DAILY_LIMIT_REACHED"
         | "UNKNOWN_ERROR"
-        | "INVALID_QR_CODE_FORMAT";
+        | "INVALID_QR_CODE_FORMAT"
+        | "DUPLICATE_CHECKIN";
 
     function isQRcodeFormatValid(qrCodeValue: string): boolean {
         //* IT SHOULD BE IN THE FORMAT: "school_id,first_name,last_name,dept_id"
@@ -192,132 +194,56 @@ export default function Scanner() {
 
 
 
-    const onScanSuccess = async (decodedText: string, decodedResult: Html5QrcodeResult) => {
+    const onScanSuccess = async (decodedText: string) => {
         try {
-            //* Pause scanning immediately
             pauseScanner();
 
-
-
-            //* IF USER IS OFFLINE THEN THROW OFFLINE ERROR
             if (!isOnline) throw new Error("OFFLINE");
 
+            const badgeId = decodedText.trim();
 
-
-            //* VALIDATE SCANNED QR CODE FORMAT
-            //* IT SHOULD BE IN THE FORMAT: "school_id,first_name,last_name,dept_id"
-            //* e.g. "1234-5678,John,Doe,1"
-
-            if (!isQRcodeFormatValid(decodedText)) {
-                console.log("INVALID QR CODE FORMAT: ", decodedText);
-                console.log("INVALID QR CODE FORMAT: ", decodedText);
-                console.log("INVALID QR CODE FORMAT: ", decodedText);
-                throw new Error("INVALID_QR_CODE_FORMAT")
-            };
-
-
-
-            //* EXTRACT THE DATA FROM THE SCANNED QR CODE
-            const { schoolId: scannedSchoolId, firstName: scannedFirstName, lastName: scannedLastName, deptId: scannedDeptId } = extractQRCodeData(decodedText);
-            // const { id: scannedSchoolId, name } = splitIdAndName(decodedText);
-
-
-
-            //* PROCEED OR CONTINUE CODE EXECUTION ONLY IF THE SCHOOL ID IS VALID
-            if (!isValidSchoolId(scannedSchoolId)) throw new Error("INVALID_SCHOOL_ID");
-
-
-
-            //* CREATE STUDENT OBJECT FROM THE SCANNED QR CODE
-            const studentFromQRCode: Omit<Student, "id" | "created_at"> = {
-                school_id: scannedSchoolId,
-                first_name: scannedFirstName,
-                last_name: scannedLastName,
-                dept_id: scannedDeptId,
-                is_active: true
+            if (!badgeId.startsWith("B-")) {
+            throw new Error("INVALID_QR_CODE_FORMAT");
             }
 
+            const result = await checkInAttendee(badgeId);
 
+            if (result.status === "not_found") throw new Error("INVALID_SCHOOL_ID");
 
-            //* RETURNS THE STUDENT OBJECT BASED ON DEFINED RULES
-            const student = await handleStudentRegistration(studentFromQRCode)
+            if (result.status === "already_checked_in") throw new Error("DUPLICATE_CHECKIN");
 
-
-
-            console.log("currentLoggedUserEmail: ", currentLoggedUserEmail);
-            setScannedStudent(student);
-
-            //* ATTEMPTS TO RESET THE SPLASH TEXT
-            setScannedStatus(null);
-            setScannedMessage("");
-
-            const newAttendanceRecord: Attendance | null = await throwErrorAfterTimeout(
-                2300,
-                () => createOrUpdateAttendanceRecord(scannedSchoolId, currentLoggedUserEmail, scanModeRef.current),
-                "TIME_LIMIT_REACHED"
-            );
-
-            if (!newAttendanceRecord) throw new Error("DAILY_LIMIT_REACHED");
-
-            setScannedStatus(newAttendanceRecord.is_time_in ? "TIMED IN" : "TIMED OUT");
-
-            //* ADD THE RETURNED ATTENDANCE OBJECT TO THE GLOBAL ATTENDANCE RECORDS STATE ARRAY ON THE QUEUE SECTION BELOW THE SCANNER UI
-            addAttendanceRecord({
-                ...newAttendanceRecord, student
-            });
-
+            setScannedStatus("TIMED IN");
             successSound?.play();
-            setTimeout(resumeScanner, 1250);
+
+            pauseAndResumeScanner(1200);
 
         } catch (error) {
-            console.error("Error in scan process:", error);
+            console.error(error);
 
             const errorType = (error as Error).message as ScanErrorType;
 
             switch (errorType) {
-                case "INVALID_QR_CODE_FORMAT":
-                    toast.error("Invalid QR Code Format", { autoClose: 1500, toastId: "toast-invalid-qr-code" });
-                    failSound?.play();
-                    pauseAndResumeScanner(1000);
-                    break;
-                case "EARLY_TIMEOUT":
-                    setScannedMessage("Early timeout, retry in 1 min");
-                    failSound?.play();
-                    pauseAndResumeScanner(1000);
-                    break;
-                case "EARLY_TIMEIN":
-                    setScannedMessage("Early time-in, retry in 10 sec");
-                    failSound?.play();
-                    pauseAndResumeScanner(1000);
-                    break;
-                case "OFFLINE":
-                    offlineSound?.play();
-                    toast.error("You are offline, please check your internet connection", { autoClose: 2500, toastId: "toast-offline" });
-                    pauseAndResumeScanner(1000);
-                    break;
-                case "TIME_LIMIT_REACHED":
-                    networkErrorSound?.play();
-                    toast.error("Server took too long to respond, try again", { autoClose: 2500 });
-                    pauseAndResumeScanner(1000);
-                    break;
-                case "EMPTY_STUDENTS_REFERENCE":
-                    toast.error("No students to compare in the database", { autoClose: 2500, toastId: "toast-empty-students" });
-                    failSound?.play();
-                    pauseAndResumeScanner(1000);
-                    break;
-                case "INVALID_SCHOOL_ID":
-                    setModalContent({ desc: "The scanned ID does not match any student", subtitle: `Scanned ID: ${decodedText}` });
-                    failSound?.play();
-                    pauseScanner(true);
-                    break;
-                case "DAILY_LIMIT_REACHED":
-                    setScannedMessage("Daily attendance limit reached!");
-                    pauseAndResumeScanner(1000);
-                    break;
-                default:
-                    setModalContent({ desc: "An error occurred while fetching student details.", subtitle: `Scanned ID: ${decodedText}` });
-                    failSound?.play();
-                    pauseScanner();
+            case "OFFLINE":
+                offlineSound?.play();
+                toast.error("Offline");
+                pauseAndResumeScanner(1000);
+                break;
+
+            case "INVALID_QR_CODE_FORMAT":
+                failSound?.play();
+                toast.error("Invalid badge QR");
+                pauseAndResumeScanner(1000);
+                break;
+
+            case "DUPLICATE_CHECKIN":
+                failSound?.play();
+                toast.error("Already checked in");
+                pauseAndResumeScanner(1000);
+                break;
+
+            default:
+                failSound?.play();
+                pauseAndResumeScanner(1000);
             }
         }
     };

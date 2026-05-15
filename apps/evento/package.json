@@ -11,6 +11,7 @@
     "deploy": "npm run build && npx vercel deploy --prod",
     "lint": "next lint"
   },
+  "proxy": "http://localhost:3000",
   "dependencies": {
     "@repo/models": "*",
     "@clerk/nextjs": "^5.2.4",

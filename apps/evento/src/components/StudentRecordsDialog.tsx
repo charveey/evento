@@ -49,7 +49,7 @@ import { truncateString } from "@/utils/utils";
 import AttendanceRecords from "./AttendanceRecords";
 
 type StudentRecordsDialogProps = {
-	student?: Student;
+	student?: Student | null;
 	schoolId?: string;
 };
 

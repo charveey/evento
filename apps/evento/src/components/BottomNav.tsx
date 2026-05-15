@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarFold, House, Lock, Scan, QrCode, UsersRound } from "lucide-react";
+import { QrCode as QrGen } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -62,6 +63,10 @@ export default function BottomNav() {
 					<Link href="/scan" className={linkClasses("scan")}>
 						<QrCode size={24} />
 						{/* <span className="text-xs scale-75 tracking-wider font-semibold">Scan</span> */}
+					</Link>
+
+					<Link href="/qr-generator" className={linkClasses("qr-generator")}>
+						<QrGen size={24} />
 					</Link>
 
 					<Link href="/events" className={linkClasses("events")}>
