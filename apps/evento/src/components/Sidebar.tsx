@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarFold, House, Scan, UsersRound, Lock } from "lucide-react";
+import { CalendarFold, House, Scan, QrCode, Lock } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -21,14 +21,10 @@ export default function Sidebar() {
         if (pathname) {
             if (pathname === "/") {
                 setActiveLink("home");
-            } else if (pathname === "/students") {
-                setActiveLink("students");
             } else if (pathname === "/scan") {
                 setActiveLink("scan");
-            } else if (pathname === "/events") {
-                setActiveLink("events");
-            } else if (pathname === "/admin") {
-                setActiveLink("admin");
+            } else if (pathname === "/qr-generator") {
+                setActiveLink("qr-generator");
             }
         }
     }, [pathname]);
@@ -73,18 +69,13 @@ export default function Sidebar() {
                 <Link href="/" className={linkClasses("home")}>
                     <House className="size-5" />Home
                 </Link>
-
-                <Link href="/students" className={linkClasses("students")}>
-                    <UsersRound className="size-5" />Students
-                </Link>
-
-                <Link href="/events" className={linkClasses("events")}>
-                    <CalendarFold className="size-5" />Events
-                </Link>
-
                 <Link href="/scan" className={linkClasses("scan")}>
                     <Scan className="size-5" />Scan
                 </Link>
+                <Link href="/qr-generator" className={linkClasses("qr-generator")}>
+                    <QrCode className="size-5" />QR Generator
+                </Link>
+                
 
 
 

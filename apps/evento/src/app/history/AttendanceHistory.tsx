@@ -1,67 +1,68 @@
 "use client";
 
-
 import AttendanceCard from "@/components/AttendanceCard";
-import { Separator } from "@/components/ui/separator";
-import { getAllAttendance, getRecentAttendance, RecentAttendanceRecord, type Attendance, type AttendanceRecord } from "@repo/models/Attendance"
-import { Student } from "@repo/models/Student";
+import { getRecentCheckIns } from "@/lib/sheets";
 import { useQuery } from "@tanstack/react-query";
 
-interface AttendanceHistoryProps {
-	title?: string;
-}
+type ScanningHistoryRecord = {
+  badge_id: string;
+  checked_in: boolean;
+  timestamp: string;
+};
 
-const AttendanceHistory: React.FC<AttendanceHistoryProps> = ({
-	title = "Recent scan results",
-}) => {
-	const {
-		data: recentAttendance = [],
-		error,
-		isLoading,
-	} = useQuery<RecentAttendanceRecord[]>({
-		queryKey: ["recentAttendanceRecords"],
-		queryFn: getRecentAttendance,
-	});
+const AttendanceHistory = () => {
+  const {
+    data,
+    error,
+    isLoading,
+  } = useQuery<ScanningHistoryRecord[]>({
+    queryKey: ["recentAttendanceRecords"],
+    queryFn: getRecentCheckIns,
+  });
 
-	if (isLoading) {
-		return <p>Loading...</p>; // Optional loading state while data is fetched
-	}
+  // HARD SAFETY: force array
+  const recentAttendance: ScanningHistoryRecord[] = Array.isArray(data)
+    ? data
+    : [];
 
-	if (error) {
-		return <p>Error: {error.message}</p>; // Optional error handling
-	}
+  if (isLoading) return <p>Loading...</p>;
 
+  if (error) {
+    return <p>Error: {(error as Error).message}</p>;
+  }
 
+  const sorted = [...recentAttendance].sort(
+    (a, b) =>
+      new Date(b.timestamp).getTime() -
+      new Date(a.timestamp).getTime()
+  );
 
-
-
-	return (
-		<section className="flex flex-col gap-2 h-full overflow-auto">
-			{/* <h1 className="font-semibold text-lg">{title}</h1> */}
-			{recentAttendance?.map((attendance: RecentAttendanceRecord) => (
-				<AttendanceCard key={attendance.id} result={
-					{
-						id: attendance.id,
-
-						time: attendance.time,
-						date: attendance.date,
-						scanned_by_email: attendance.scanned_by_email,
-						school_id: attendance.school_id,
-						is_time_in: attendance.is_time_in,
-						student: {
-							id: 0,
-							first_name: attendance.first_name,
-							school_id: attendance.school_id,
-							last_name: attendance.last_name,
-							dept_id: attendance.dept_id,
-							is_active: true,
-							created_at: "",
-						},
-					}
-				} />
-			))}
-		</section>
-	);
+  return (
+    <section className="flex flex-col gap-2 h-full overflow-auto">
+      {sorted.map((attendance, index) => (
+        <AttendanceCard
+          key={`${attendance.badge_id}-${index}`}
+          result={{
+            id: index,
+            time: new Date(attendance.timestamp).toLocaleTimeString(),
+            date: new Date(attendance.timestamp).toLocaleDateString(),
+            scanned_by_email: "",
+            school_id: attendance.badge_id,
+            is_time_in: attendance.checked_in,
+            student: {
+              id: 0,
+              first_name: "",
+              last_name: "",
+              school_id: attendance.badge_id,
+              dept_id: 0,
+              is_active: true,
+              created_at: "",
+            },
+          }}
+        />
+      ))}
+    </section>
+  );
 };
 
 export default AttendanceHistory;

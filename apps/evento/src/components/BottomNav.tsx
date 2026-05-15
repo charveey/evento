@@ -1,7 +1,6 @@
 "use client";
 
-import { CalendarFold, House, Lock, Scan, QrCode, UsersRound } from "lucide-react";
-import { QrCode as QrGen } from "lucide-react";
+import { CalendarFold, House, Focus, Scan, QrCode, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,14 +19,10 @@ export default function BottomNav() {
 		if (pathname) {
 			if (pathname === "/") {
 				setActiveLink("home");
-			} else if (pathname === "/students") {
-				setActiveLink("students");
 			} else if (pathname === "/scan") {
 				setActiveLink("scan");
-			} else if (pathname === "/events") {
-				setActiveLink("events");
-			} else if (pathname === "/admin") {
-				setActiveLink("admin");
+			} else if (pathname === "/qr-generator") {
+				setActiveLink("qr-generator");
 			}
 		}
 	}, [pathname]);
@@ -54,32 +49,14 @@ export default function BottomNav() {
 						{/* <span className="text-xs  scale-75 tracking-wider font-semibold">Home</span> */}
 					</Link>
 
-					<Link href="/students" className={linkClasses("students")}>
-						<UsersRound size={24} />
-						{/* <span className="text-xs  scale-75 tracking-wider font-semibold">Students</span> */}
-					</Link>
-
-
 					<Link href="/scan" className={linkClasses("scan")}>
-						<QrCode size={24} />
+						<Focus size={24} />
 						{/* <span className="text-xs scale-75 tracking-wider font-semibold">Scan</span> */}
 					</Link>
 
 					<Link href="/qr-generator" className={linkClasses("qr-generator")}>
-						<QrGen size={24} />
+						<QrCode size={24} />
 					</Link>
-
-					<Link href="/events" className={linkClasses("events")}>
-						<CalendarFold size={24} />
-						{/* <span className="text-xs scale-75 tracking-wider font-semibold">Events</span> */}
-					</Link>
-
-					{currentUserRole === "ADMIN" &&
-						<Link href="/admin" className={linkClasses("admin")}>
-							<Lock size={24} />
-							{/* <span className="text-xs scale-75 tracking-wider font-semibold">Manage</span> */}
-						</Link>
-					}
 				</div>
 			</nav>
 		);

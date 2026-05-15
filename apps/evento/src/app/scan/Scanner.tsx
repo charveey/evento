@@ -174,6 +174,7 @@ export default function Scanner() {
         | "DAILY_LIMIT_REACHED"
         | "UNKNOWN_ERROR"
         | "INVALID_QR_CODE_FORMAT"
+        | "INVALID_BADGE_ID"
         | "DUPLICATE_CHECKIN";
 
     function isQRcodeFormatValid(qrCodeValue: string): boolean {
@@ -208,11 +209,12 @@ export default function Scanner() {
 
             const result = await checkInAttendee(badgeId);
 
-            if (result.status === "not_found") throw new Error("INVALID_SCHOOL_ID");
+            if (result.status === "not_found") throw new Error("INVALID_BADGE_ID");
 
             if (result.status === "already_checked_in") throw new Error("DUPLICATE_CHECKIN");
 
             setScannedStatus("TIMED IN");
+            toast.success("Check-in successful");
             successSound?.play();
 
             pauseAndResumeScanner(1200);
@@ -238,6 +240,12 @@ export default function Scanner() {
             case "DUPLICATE_CHECKIN":
                 failSound?.play();
                 toast.error("Already checked in");
+                pauseAndResumeScanner(1000);
+                break;
+
+            case "INVALID_BADGE_ID":
+                failSound?.play();
+                toast.error("Badge not recognized");
                 pauseAndResumeScanner(1000);
                 break;
 

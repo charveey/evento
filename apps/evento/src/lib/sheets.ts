@@ -10,6 +10,16 @@ export type Attendee = {
   timestamp: string;
 };
 
+export type ScanningHistoryRecord = {
+  badge_id: string;
+  checked_in: boolean;
+  timestamp: string;
+};
+
+/* -----------------------------
+   CHECK-IN
+------------------------------*/
+
 export async function checkInAttendee(
   badgeId: string
 ): Promise<CheckInResult> {
@@ -34,7 +44,6 @@ export async function checkInAttendee(
         message: "Invalid server response",
       };
     }
-
   } catch {
     return {
       status: "error",
@@ -43,7 +52,34 @@ export async function checkInAttendee(
   }
 }
 
+/* -----------------------------
+   ATTENDEES LIST
+------------------------------*/
+
 export async function getAttendees(): Promise<Attendee[]> {
   const res = await fetch("/api/attendees");
   return await res.json();
+}
+
+/* -----------------------------
+   SCANNING HISTORY (NEW)
+------------------------------*/
+
+export async function getRecentCheckIns(): Promise<
+  ScanningHistoryRecord[]
+> {
+  try {
+    const res = await fetch("/api/getScanningHistory");
+
+    const text = await res.text();
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      console.error("Invalid JSON from scanning history:", text);
+      return [];
+    }
+  } catch {
+    return [];
+  }
 }
