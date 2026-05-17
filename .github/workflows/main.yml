@@ -1,0 +1,111 @@
+name: Deploy Evento
+
+on:
+  push:
+    branches:
+      - google-qr-scan # change to your branch name if different
+
+jobs:
+  deploy:
+    name: Build & Deploy apps/evento to OCI
+    runs-on: ubuntu-latest
+
+    steps:
+      # ----------------------------------------
+      # 1. Checkout
+      # ----------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ----------------------------------------
+      # 2. Setup Node
+      # ----------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ----------------------------------------
+      # 3. Install (monorepo root — needed so
+      #    workspace packages like @repo/models
+      #    and @repo/utils are resolved)
+      # ----------------------------------------
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      # ----------------------------------------
+      # 4. Write .env.local for the build
+      # ----------------------------------------
+      - name: Write .env.local
+        run: |
+          cat > apps/evento/.env.local << 'EOF'
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+          NEXT_PUBLIC_SHEETS_WEBHOOK_URL=${{ secrets.NEXT_PUBLIC_SHEETS_WEBHOOK_URL }}
+          EOF
+
+      # ----------------------------------------
+      # 5. Build only apps/evento via Turbo filter
+      # ----------------------------------------
+      - name: Build evento
+        run: npx turbo build --filter=evento
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+          NEXT_PUBLIC_SHEETS_WEBHOOK_URL: ${{ secrets.NEXT_PUBLIC_SHEETS_WEBHOOK_URL }}
+
+      # ----------------------------------------
+      # 6. SSH setup
+      # ----------------------------------------
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.OCI_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.OCI_HOST }} >> ~/.ssh/known_hosts
+
+      # ----------------------------------------
+      # 7. Rsync built app to OCI
+      #    We ship:
+      #      .next/          — the Next.js build output
+      #      public/         — static assets
+      #      package.json    — needed by `next start`
+      #      next.config.mjs — needed by `next start`
+      #      .env.local      — runtime env vars
+      #    We do NOT ship node_modules or the full source.
+      # ----------------------------------------
+      - name: Sync build to OCI
+        run: |
+          rsync -avz --delete \
+            --exclude='node_modules' \
+            --exclude='.next/cache' \
+            -e "ssh -i ~/.ssh/id_rsa" \
+            apps/evento/.next \
+            apps/evento/public \
+            apps/evento/package.json \
+            apps/evento/next.config.mjs \
+            apps/evento/.env.local \
+            ${{ secrets.OCI_USER }}@${{ secrets.OCI_HOST }}:/srv/www/evento/
+
+      # ----------------------------------------
+      # 8. Install production deps on server
+      #    and reload PM2
+      # ----------------------------------------
+      - name: Restart app via PM2
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.OCI_USER }}@${{ secrets.OCI_HOST }} << 'EOF'
+            set -e
+            cd /srv/www/evento
+            npm install --omit=dev --no-audit --no-fund
+            pm2 startOrGracefulReload ecosystem.config.js --only evento-prod && pm2 save
+            echo "==> Deploy complete"
+          EOF
