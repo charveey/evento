@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       # ----------------------------------------
@@ -32,10 +32,7 @@ jobs:
       #    and @repo/utils are resolved)
       # ----------------------------------------
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y rsync
-          npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       # ----------------------------------------
       # 4. Write .env.local for the build
@@ -88,6 +85,8 @@ jobs:
       # ----------------------------------------
       - name: Sync build to OCI
         run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync
           rsync -avz --delete \
             --exclude='node_modules' \
             --exclude='.next/cache' \
