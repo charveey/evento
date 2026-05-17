@@ -2,7 +2,6 @@ name: Deploy Evento
 
 on:
   push:
-    branches: [ "google-qr-scan" ] # change to your branch name if different
   workflow_dispatch: {} # allows manual trigger from GitHub UI
 jobs:
   deploy:
@@ -33,7 +32,10 @@ jobs:
       #    and @repo/utils are resolved)
       # ----------------------------------------
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync
+          npm install --no-audit --no-fund
 
       # ----------------------------------------
       # 4. Write .env.local for the build
