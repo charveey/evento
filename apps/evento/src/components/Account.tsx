@@ -31,7 +31,7 @@ export default function Account() {
     const { isLoaded, isSignedIn, user } = useUser();
 
     if (!isLoaded || !isSignedIn) {
-        return <>NO USER FOUND</>;
+        return <>WELCOME</>;
     }
 
 

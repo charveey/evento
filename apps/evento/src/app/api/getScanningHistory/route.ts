@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_SHEETS_WEBHOOK_URL!;
 
 export async function GET() {
@@ -11,7 +13,7 @@ export async function GET() {
 
     const text = await response.text();
 
-    console.log("RAW SHEETS RESPONSE:", text);
+    // console.log("RAW SHEETS RESPONSE:", text);
 
     let data: any;
 

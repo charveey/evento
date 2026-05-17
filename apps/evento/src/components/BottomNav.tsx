@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarFold, House, Focus, Scan, QrCode, UsersRound } from "lucide-react";
+import { CalendarFold, House, Focus, Scan, UsersRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -44,10 +44,6 @@ export default function BottomNav() {
 			<nav className="w-full z-50">
 				{/* <nav className="fixed bottom-0 w-full bg-background border-t z-50"> */}
 				<div className="max-w-lg mx-auto flex justify-around items-center p-2 ">
-					<Link href="/" className={linkClasses("home")}>
-						<House size={24} />
-						{/* <span className="text-xs  scale-75 tracking-wider font-semibold">Home</span> */}
-					</Link>
 
 					<Link href="/scan" className={linkClasses("scan")}>
 						<Focus size={24} />
@@ -55,7 +51,7 @@ export default function BottomNav() {
 					</Link>
 
 					<Link href="/qr-generator" className={linkClasses("qr-generator")}>
-						<QrCode size={24} />
+						<Users size={24} />
 					</Link>
 				</div>
 			</nav>

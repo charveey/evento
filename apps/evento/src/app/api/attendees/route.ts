@@ -1,5 +1,7 @@
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_SHEETS_WEBHOOK_URL!;
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const res = await fetch(WEBHOOK_URL, {

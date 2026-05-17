@@ -91,9 +91,9 @@ export default function QRGeneratorPage() {
           Badge List ({attendees.length})
         </h1>
 
-        <Button onClick={handleExportZip} disabled={exporting}>
+        {/* <Button onClick={handleExportZip} disabled={exporting}>
           {exporting ? "Generating ZIP..." : "Download QR ZIP"}
-        </Button>
+        </Button> */}
       </div>
 
       {/* LIST VIEW (FAST + SCALABLE) */}

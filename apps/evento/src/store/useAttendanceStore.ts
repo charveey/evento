@@ -1,5 +1,5 @@
 import { AttendanceRecord } from "@repo/models/Attendance";
-import create from "zustand";
+import { create } from "zustand";
 
 type AttendanceState = {
   attendanceRecords: AttendanceRecord[];

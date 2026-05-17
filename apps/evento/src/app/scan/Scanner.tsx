@@ -290,9 +290,9 @@ export default function Scanner() {
             )} */}
 
 
-            {!scannedStudent && (
+            {/* {!scannedStudent && (
                 <ScanModeDialog />
-            )}
+            )} */}
 
 
 

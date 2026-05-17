@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarFold, House, Scan, QrCode, Lock } from "lucide-react";
+import { CalendarFold, House, Scan, Users, Lock } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -66,14 +66,14 @@ export default function Sidebar() {
 
 
 
-                <Link href="/" className={linkClasses("home")}>
+                {/* <Link href="/" className={linkClasses("home")}>
                     <House className="size-5" />Home
-                </Link>
+                </Link> */}
                 <Link href="/scan" className={linkClasses("scan")}>
                     <Scan className="size-5" />Scan
                 </Link>
                 <Link href="/qr-generator" className={linkClasses("qr-generator")}>
-                    <QrCode className="size-5" />QR Generator
+                    <Users className="size-5" />Badge List
                 </Link>
                 
 
