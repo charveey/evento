@@ -2,9 +2,8 @@ name: Deploy Evento
 
 on:
   push:
-    branches:
-      - google-qr-scan # change to your branch name if different
-
+    branches: [ "google-qr-scan" ] # change to your branch name if different
+  workflow_dispatch: {} # allows manual trigger from GitHub UI
 jobs:
   deploy:
     name: Build & Deploy apps/evento to OCI
@@ -15,7 +14,9 @@ jobs:
       # 1. Checkout
       # ----------------------------------------
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          ref: "google-qr-scan" # ensure we checkout the correct branch
 
       # ----------------------------------------
       # 2. Setup Node
